@@ -115,7 +115,6 @@ public:
 
         message << std::istream(&buf).rdbuf();
         buf.consume(size);
-        std::cout << message.str();
         std::string username = message.str();
         message.clear();
         int pos = username.find('\n');

@@ -72,7 +72,6 @@ public:
 
     bool decode_header() {
         body_length_ = std::atoi((char*)header);
-        std::cout << "size " << body_length_ << std::endl;
         set_size(body_length_);
         std::memcpy(data_.get(), header, HEADER_LENGTH);
         if(body_length_ > MAX_MESSAGE_SIZE) {
@@ -89,6 +88,7 @@ private:
     enum { MAX_MESSAGE_SIZE = 9999 };
     char header[HEADER_LENGTH + 1]{};
 };
+
 
 
 #endif //VEGASERVER_CHAT_MESSAGE_H
