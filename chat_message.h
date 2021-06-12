@@ -24,7 +24,7 @@ public:
         return data_.get();
     }
 
-    char* head() {
+    uint8_t* head() {
         return header;
     }
 
@@ -33,49 +33,78 @@ public:
         return HEADER_LENGTH + body_length_;
     }
 
-    uint8_t* body() const
+    uint8_t* body()
     {
         return data_.get() + HEADER_LENGTH;
     }
 
-    std::size_t body_length() const
+    int body_length() const
     {
         return body_length_;
     }
 
-    void set_size(std::size_t size) {
+    void set_size(const std::size_t& size) {
         body_length_ = size;
-        data_ = std::make_unique<uint8_t[]>(size);
+        data_ = std::make_unique<uint8_t[]>(size + HEADER_LENGTH);
     }
 
-    static const char* get_username(const uint8_t *data, std::size_t size) {
+    const char* get_username(const uint8_t *_data, std::size_t size) {
 
+        const bson_t *received_bson;
         const bson_t *received;
         bson_reader_t *reader;
         bson_iter_t iter;
-        size_t size1 = 0;
-        const char* user = nullptr;
+        const char *user = nullptr;
+        bool reached_eof = false;
 
-        reader = bson_reader_new_from_data(data, size);
 
-        received = bson_reader_read(reader, nullptr);
+        received_bson = bson_new_from_data(data_.get() + HEADER_LENGTH, body_length_);
 
-        if (bson_iter_init_find(&iter, received, "Receiver") && BSON_ITER_HOLDS_UTF8(&iter)) {
+        for(int i = 0; i < 50; i++) {
+            std::cout << (data_.get() + 5)[i];
+        }
+
+        /**if (!bson_validate (received_bson, BSON_VALIDATE_NONE, &err_offset)) {
+            fprintf (stderr,
+                     "The document failed to validate at offset: %u\n",
+                     (unsigned) err_offset);
+        }**/
+
+        /**if ((json = bson_as_canonical_extended_json (received_bson, nullptr))) {
+            printf ("%s\n", json);
+            bson_free ((void *) json);
+        }**/
+
+        //reader = bson_reader_new_from_data(_data, size);
+        //received = bson_reader_read(reader, &reached_eof);
+
+        if (!reached_eof)
+            std::cout << "error " << std::endl;
+
+        if (bson_iter_init_find(&iter, received_bson, "Receiver") && BSON_ITER_HOLDS_UTF8(&iter)) {
             user = bson_iter_utf8(&iter, nullptr);
         }
 
-        bson_reader_destroy(reader);
+        int sizes = sizeof(*data_.get());
+        //bson_reader_destroy(reader);
 
         return user;
 
     }
 
     bool decode_header() {
-        body_length_ = std::atoi((char*)header);
+        //body_length_ = std::atoi((char*)header);
+        std::memcpy(&body_length_, header, sizeof body_length_);
         set_size(body_length_);
         std::memcpy(data_.get(), header, HEADER_LENGTH);
+        data_.get()[3] = (body_length_>>24) & 0xFF;
+        data_.get()[2] = (body_length_>>16) & 0xFF;
+        data_.get()[1] = (body_length_>>8) & 0xFF;
+        data_.get()[0] = body_length_ & 0xFF;
+        std::cout << "Body Size " << body_length_ << std::endl;
         if(body_length_ > MAX_MESSAGE_SIZE) {
             body_length_ = 0;
+            std::cout << "Body Size " << body_length_ << std::endl;
             return false;
         }
         return true;
@@ -83,12 +112,10 @@ public:
 
 
 private:
-    std::size_t body_length_{};
+    int body_length_{};
     std::unique_ptr<uint8_t[]> data_;
-    enum { MAX_MESSAGE_SIZE = 9999 };
-    char header[HEADER_LENGTH + 1]{};
+    enum { MAX_MESSAGE_SIZE = 99999 };
+    uint8_t header[HEADER_LENGTH]{};
 };
-
-
 
 #endif //VEGASERVER_CHAT_MESSAGE_H
