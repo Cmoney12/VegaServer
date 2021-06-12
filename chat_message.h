@@ -43,17 +43,17 @@ public:
     }
 
     void set_size(const std::size_t& size) {
-        body_length_ = size;
+        body_length_ = (int)size;
         data_ = std::make_unique<uint8_t[]>(size + HEADER_LENGTH);
     }
 
-    const char* get_username(const uint8_t *_data, std::size_t size) {
+    static const char* get_username(const uint8_t *bson, std::size_t size) {
 
         bson_t *received_bson;
         bson_iter_t iter;
         const char *user = nullptr;
 
-        received_bson = bson_new_from_data(_data, size);
+        received_bson = bson_new_from_data(bson, size);
 
         if (bson_iter_init_find(&iter, received_bson, "Receiver") && BSON_ITER_HOLDS_UTF8(&iter)) {
             user = bson_iter_utf8(&iter, nullptr);
