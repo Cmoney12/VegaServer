@@ -150,7 +150,7 @@ private:
                                 {
                                     if (!ec) {
 
-                                        std::string username = read_msg_->get_username(read_msg_->data() + 5,
+                                        std::string username = read_msg_->get_username(read_msg_->body(),
                                                                                           read_msg_->body_length());
                                         room_.deliver(username, read_msg_);
                                         do_read_header();

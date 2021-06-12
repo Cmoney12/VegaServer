@@ -50,7 +50,7 @@ public:
 
     const char* get_username(const uint8_t *_data, std::size_t size) {
 
-        const bson_t *received_bson;
+        bson_t *received_bson;
         const bson_t *received;
         bson_reader_t *reader;
         bson_iter_t iter;
@@ -58,7 +58,7 @@ public:
         bool reached_eof = false;
 
 
-        received_bson = bson_new_from_data(data_.get() + HEADER_LENGTH, body_length_);
+        received_bson = bson_new_from_data(_data, size);
 
         for(int i = 0; i < 50; i++) {
             std::cout << (data_.get() + 5)[i];
@@ -78,14 +78,11 @@ public:
         //reader = bson_reader_new_from_data(_data, size);
         //received = bson_reader_read(reader, &reached_eof);
 
-        if (!reached_eof)
-            std::cout << "error " << std::endl;
-
         if (bson_iter_init_find(&iter, received_bson, "Receiver") && BSON_ITER_HOLDS_UTF8(&iter)) {
             user = bson_iter_utf8(&iter, nullptr);
         }
 
-        int sizes = sizeof(*data_.get());
+        //int sizes = sizeof(*data_.get());
         //bson_reader_destroy(reader);
 
         return user;
@@ -114,7 +111,7 @@ public:
 private:
     int body_length_{};
     std::unique_ptr<uint8_t[]> data_;
-    enum { MAX_MESSAGE_SIZE = 99999 };
+    enum { MAX_MESSAGE_SIZE = 999999 };
     uint8_t header[HEADER_LENGTH]{};
 };
 
