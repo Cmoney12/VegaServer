@@ -149,7 +149,6 @@ private:
                                 [this, self](boost::system::error_code ec, std::size_t /*length*/)
                                 {
                                     if (!ec) {
-
                                         std::string username = read_msg_->get_username(read_msg_->body(),
                                                                                           read_msg_->body_length());
                                         room_.deliver(username, read_msg_);
